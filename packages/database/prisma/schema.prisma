@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  name                String?
+  avatar_url          String?
+  role                Role     @default(USER)
+  subscription_status SubscriptionStatus @default(FREE)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  projects            Project[]
+  collaborations      ProjectCollaborator[]
+  payments            Payment[]
+  usage_logs          UsageLog[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(DRAFT)
+  visibility  Visibility    @default(PRIVATE)
+  domain      String?       @unique
+  repository_url String?
+  deployment_url String?
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  // Relations
+  owner_id    String
+  owner       User          @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  collaborators ProjectCollaborator[]
+  files       ProjectFile[]
+  deployments Deployment[]
+  analytics   Analytics[]
+
+  @@map("projects")
+}
+
+model ProjectCollaborator {
+  id         String              @id @default(uuid())
+  role       CollaboratorRole    @default(VIEWER)
+  created_at DateTime            @default(now())
+
+  // Relations
+  user_id    String
+  project_id String
+  user       User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  project    Project             @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, project_id])
+  @@map("project_collaborators")
+}
+
+model ProjectFile {
+  id         String   @id @default(uuid())
+  path       String
+  content    String
+  size       Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  project_id String
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, path])
+  @@map("project_files")
+}
+
+model Deployment {
+  id          String           @id @default(uuid())
+  version     String
+  status      DeploymentStatus @default(PENDING)
+  url         String?
+  build_logs  String?
+  created_at  DateTime         @default(now())
+  completed_at DateTime?
+
+  // Relations
+  project_id  String
+  project     Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@map("deployments")
+}
+
+model Analytics {
+  id         String   @id @default(uuid())
+  event_type String
+  data       Json
+  created_at DateTime @default(now())
+
+  // Relations
+  project_id String
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@map("analytics")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  stripe_payment_id String      @unique
+  amount          Int           // Amount in cents
+  currency        String        @default("usd")
+  status          PaymentStatus @default(PENDING)
+  created_at      DateTime      @default(now())
+
+  // Relations
+  user_id         String
+  user            User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model UsageLog {
+  id         String   @id @default(uuid())
+  action     String
+  metadata   Json?
+  created_at DateTime @default(now())
+
+  // Relations
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("usage_logs")
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+  PRO
+}
+
+enum SubscriptionStatus {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum Visibility {
+  PRIVATE
+  PUBLIC
+}
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+enum DeploymentStatus {
+  PENDING
+  BUILDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
