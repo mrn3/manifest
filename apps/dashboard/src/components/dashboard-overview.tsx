@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { CreateProjectDialog } from './create-project-dialog';
 
 const stats = [
   {
@@ -207,7 +208,19 @@ export function DashboardOverview() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {quickActions.map((action) => (
+                <CreateProjectDialog>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-auto p-4"
+                  >
+                    <Zap className="h-5 w-5 mr-3 text-blue-600" />
+                    <div className="text-left">
+                      <div className="font-medium">Create New Project</div>
+                      <div className="text-sm text-gray-500">Start building with AI assistance</div>
+                    </div>
+                  </Button>
+                </CreateProjectDialog>
+                {quickActions.slice(1).map((action) => (
                   <Button
                     key={action.action}
                     variant="outline"

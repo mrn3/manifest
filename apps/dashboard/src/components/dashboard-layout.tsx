@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { CreateProjectDialog } from './create-project-dialog';
 import { cn } from '../lib/utils';
 
 const navigation = [
@@ -146,10 +147,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                New Project
-              </Button>
+              <CreateProjectDialog>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Project
+                </Button>
+              </CreateProjectDialog>
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
               </Button>
